@@ -1,0 +1,43 @@
+{
+  "name": "EarLab — Functional Ear Training",
+  "short_name": "EarLab",
+  "description": "Scientific, adaptive functional ear training platform for musicians.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#080c14",
+  "theme_color": "#080c14",
+  "icons": [
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["education", "music"],
+  "shortcuts": [
+    {
+      "name": "Start 10-Min Session",
+      "url": "/?action=continue",
+      "description": "Quick start your next recommended practice session"
+    },
+    {
+      "name": "Tonal Feeling Lab",
+      "url": "/?view=feeling",
+      "description": "Interactive tonic drone and tonal pull laboratory"
+    }
+  ]
+}

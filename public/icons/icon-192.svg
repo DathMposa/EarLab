@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <defs>
+    <radialGradient id="bgGlow192" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1e1b4b" />
+      <stop offset="100%" stop-color="#080c14" />
+    </radialGradient>
+    <linearGradient id="primaryGrad192" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#818cf8" />
+      <stop offset="100%" stop-color="#4f46e5" />
+    </linearGradient>
+    <linearGradient id="accentGrad192" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2dd4bf" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" rx="42" fill="url(#bgGlow192)" />
+  <rect width="192" height="192" rx="42" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2" />
+  <circle cx="96" cy="96" r="68" fill="none" stroke="rgba(99,102,241,0.22)" stroke-width="3" stroke-dasharray="8 6" />
+  <path d="M74 54 C74 80, 85 96, 96 104 C107 96, 118 80, 118 54" fill="none" stroke="url(#primaryGrad192)" stroke-width="12" stroke-linecap="round" />
+  <line x1="96" y1="104" x2="96" y2="142" stroke="url(#primaryGrad192)" stroke-width="12" stroke-linecap="round" />
+  <circle cx="96" cy="142" r="9" fill="url(#accentGrad192)" />
+  <circle cx="96" cy="44" r="6" fill="#6366f1" />
+</svg>
