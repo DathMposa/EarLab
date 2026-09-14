@@ -16,6 +16,7 @@ import { ActiveTab } from './Navigation';
 import { AppState } from '../lib/storage/store';
 import { KEYS } from '../lib/music/scales';
 import { audioEngine } from '../lib/audio/audioEngine';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface SidebarProps {
   activeTab: ActiveTab;
@@ -172,6 +173,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {state.sessionsCount} sessions
           </span>
         </div>
+
+        {/* PWA Device Install Action */}
+        <PWAInstallButton variant="sidebar" />
       </div>
     </aside>
   );

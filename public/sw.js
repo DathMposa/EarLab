@@ -1,7 +1,10 @@
-const CACHE_NAME = 'earlab-v1';
+const CACHE_NAME = 'earlab-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/manifest.webmanifest',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
+  '/icons/icon-maskable.png',
   '/icons/icon-192.svg',
   '/icons/icon-512.svg'
 ];
@@ -28,7 +31,7 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
-  
+
   // For navigation requests, try network first, fallback to cached '/'
   if (event.request.mode === 'navigate') {
     event.respondWith(

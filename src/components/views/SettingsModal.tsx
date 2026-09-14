@@ -4,6 +4,7 @@ import React from 'react';
 import { X, SlidersHorizontal, Compass, Mic } from 'lucide-react';
 import { AppState, saveState, UserPreferences } from '../../lib/storage/store';
 import { KEYS, NotationMode, ScaleType, SoundTimbre } from '../../lib/music/scales';
+import { PWAInstallButton } from '../PWAInstallButton';
 
 interface SettingsModalProps {
   state: AppState;
@@ -172,6 +173,25 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               onChange={(e) => updatePref('autoAdvanceOnCorrect', e.target.checked)}
               style={{ width: '22px', height: '22px', cursor: 'pointer', accentColor: '#09090b' }}
             />
+          </div>
+
+          {/* PWA Device Installation */}
+          <div style={{
+            background: 'var(--panel-card-subtle)',
+            borderRadius: '12px',
+            padding: '14px 16px',
+            border: '1px solid var(--panel-border-medium)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px',
+          }}>
+            <div>
+              <b style={{ fontSize: '0.94rem', color: '#09090b' }}>Progressive Web App (Offline Mode)</b>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '3px', lineHeight: 1.45 }}>
+                Install EarLab as a dedicated workstation app on your computer, tablet, or mobile phone. Runs offline with zero network latency.
+              </p>
+            </div>
+            <PWAInstallButton variant="modal" />
           </div>
 
           {/* Diagnostic Button */}
