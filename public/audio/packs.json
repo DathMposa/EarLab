@@ -1,0 +1,19 @@
+{
+  "version": "1.0.0",
+  "packs": [
+    {
+      "id": "studio-grand",
+      "title": "Studio Grand Piano",
+      "status": "ready",
+      "license": "CC BY 3.0",
+      "attribution": "Salamander Grand Piano v3 by Alexander Holm"
+    },
+    {
+      "id": "core-rhythm-harmony",
+      "title": "Core Rhythm, Bass & Ensemble",
+      "status": "fallback",
+      "license": "Awaiting verified redistributable source assets",
+      "attribution": "EarLab uses timing-accurate Web Audio voices until a CC0 or CC BY pack is installed."
+    }
+  ]
+}

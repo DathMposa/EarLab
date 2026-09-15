@@ -41,10 +41,10 @@ export const FeelingLabView: React.FC<FeelingLabViewProps> = ({ state }) => {
   };
 
   return (
-    <div style={{
+    <div className="earlab-page" style={{
       display: 'grid',
       gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-      gap: '12px',
+      gap: '18px',
       alignItems: 'start',
       maxWidth: '1100px',
       margin: '0 auto',
@@ -55,10 +55,10 @@ export const FeelingLabView: React.FC<FeelingLabViewProps> = ({ state }) => {
         <section className="studio-card studio-card-compact">
           <div className="section-tag" style={{ marginBottom: '4px' }}>
             <Activity size={13} />
-            Aural Gravitational Field
+            Feeling Lab
           </div>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '10px', color: '#09090b' }}>
-            Tonal Physics & Vector Pulls
+            Understand how tones pull and resolve.
           </h2>
 
           {/* Interactive Vector Compass Diagram */}

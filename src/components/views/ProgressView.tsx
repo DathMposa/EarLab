@@ -2,7 +2,7 @@
 
 import React, { useRef } from 'react';
 import { BarChart2, Download, Upload, Trash2, AlertCircle, Activity } from 'lucide-react';
-import { AppState, exportStateAsJson, exportHistoryAsCsv, saveState, DEFAULT_STATE } from '../../lib/storage/store';
+import { AppState, exportStateAsJson, exportHistoryAsCsv, saveState, DEFAULT_STATE, cloneState } from '../../lib/storage/store';
 import { DiatonicMasteryMatrix } from '../visuals/DiatonicMasteryMatrix';
 import { ConfusionCrossTalk } from '../visuals/ConfusionCrossTalk';
 
@@ -54,7 +54,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ state, onStateUpdate
 
   const handleResetData = () => {
     if (confirm('Reset all EarLab progress data on this machine? This action is immediate and permanent.')) {
-      const clean = structuredClone(DEFAULT_STATE);
+      const clean = cloneState(DEFAULT_STATE);
       saveState(clean);
       onStateUpdate(clean);
     }

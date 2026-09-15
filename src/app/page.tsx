@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Sidebar } from '../components/Sidebar';
 import { Header } from '../components/Header';
 import { Navigation, ActiveTab } from '../components/Navigation';
 import { HomeView } from '../components/views/HomeView';
@@ -11,15 +10,17 @@ import { ProgressView } from '../components/views/ProgressView';
 import { ExerciseView } from '../components/views/ExerciseView';
 import { SettingsModal } from '../components/views/SettingsModal';
 import { DiagnosticView } from '../components/views/DiagnosticView';
+import { MusicianshipView } from '../components/views/MusicianshipView';
+import { DeepListeningView } from '../components/views/DeepListeningView';
 import { AppState, DEFAULT_STATE, loadState } from '../lib/storage/store';
 import { TrackId } from '../lib/music/curriculum';
 
 export default function App() {
   const [state, setState] = useState<AppState>(DEFAULT_STATE);
-  const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>('home');
   const [showSettings, setShowSettings] = useState<boolean>(false);
   const [showDiagnostic, setShowDiagnostic] = useState<boolean>(false);
+  const [studioFocus, setStudioFocus] = useState<boolean>(false);
 
   // Active training session state
   const [activeSession, setActiveSession] = useState<{
@@ -30,7 +31,6 @@ export default function App() {
   useEffect(() => {
     const loaded = loadState();
     setState(loaded);
-    setIsLoaded(true);
 
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -58,35 +58,9 @@ export default function App() {
     setActiveSession(null);
   };
 
-  if (!isLoaded) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: 'var(--text-muted)',
-        fontFamily: 'var(--font-mono)',
-        fontSize: '0.9rem',
-      }}>
-        INITIALIZING STUDIO CORE...
-      </div>
-    );
-  }
-
   return (
     <div className="desktop-app-shell">
-      {/* Fixed Desktop Sidebar (Hidden on mobile) */}
-      {!activeSession && (
-        <Sidebar
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          state={state}
-          onOpenSettings={() => setShowSettings(true)}
-        />
-      )}
-
-      {/* Main Studio Workspace */}
+      {/* Mobile-first workspace; the same composition expands gracefully on desktop. */}
       <main className="desktop-workspace">
         {/* If an active exercise session is running, render the focused console */}
         {activeSession ? (
@@ -100,13 +74,13 @@ export default function App() {
         ) : (
           <>
             {/* Header (Acts as Mobile Header or Desktop Title Bar) */}
-            <Header
+            {!studioFocus && <Header
               state={state}
               onOpenSettings={() => setShowSettings(true)}
-            />
+            />}
 
             <div style={{ flex: 1 }}>
-              {activeTab === 'home' && (
+              {!studioFocus && activeTab === 'home' && (
                 <HomeView
                   state={state}
                   onStartSession={handleStartSession}
@@ -114,44 +88,41 @@ export default function App() {
                 />
               )}
 
-              {activeTab === 'curriculum' && (
+              {!studioFocus && activeTab === 'curriculum' && (
                 <CurriculumView
                   state={state}
                   onStartSession={handleStartSession}
                 />
               )}
 
-              {activeTab === 'feeling' && (
-                <FeelingLabView state={state} />
+              {!studioFocus && activeTab === 'feeling' && (
+                <MusicianshipView state={state} onStateUpdate={setState} onStartLegacy={handleStartSession} />
               )}
 
-              {activeTab === 'progress' && (
+              {!studioFocus && activeTab === 'progress' && (
                 <ProgressView
                   state={state}
                   onStateUpdate={setState}
                 />
               )}
 
-              {activeTab === 'settings' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div className="studio-card">
-                    <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '6px' }}>Studio Preferences</h3>
-                    <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
-                      Configure functional notation systems, key calibration, and instrument synthesis timbres.
-                    </p>
-                    <button className="btn-primary" onClick={() => setShowSettings(true)}>
-                      Open Studio Configuration
-                    </button>
-                  </div>
-                </div>
-              )}
+              <DeepListeningView
+                state={state}
+                onStateUpdate={setState}
+                onOpenSettings={() => setShowSettings(true)}
+                isActive={activeTab === 'settings'}
+                onStudioFocusChange={(focused) => {
+                  setStudioFocus(focused);
+                  if (focused) setActiveTab('settings');
+                }}
+              />
             </div>
 
             {/* Mobile Bottom Navigation (Hidden on desktop via CSS) */}
-            <Navigation
+            {!studioFocus && <Navigation
               activeTab={activeTab}
               onTabChange={setActiveTab}
-            />
+            />}
           </>
         )}
       </main>

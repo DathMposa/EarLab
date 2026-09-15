@@ -1,0 +1,43 @@
+{
+  "id": "studio-grand-v1",
+  "name": "Studio Grand Piano",
+  "format": "opus",
+  "sampleRate": 48000,
+  "integrityAlgorithm": "sha256",
+  "assetCount": 18,
+  "source": "Salamander Grand Piano v3 by Alexander Holm",
+  "license": "CC BY 3.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+  "sourceUrl": "https://github.com/sfzinstruments/SalamanderGrandPiano",
+  "notes": [
+    { "midi": 60, "name": "C4", "velocities": [4, 12] },
+    { "midi": 63, "name": "D#4", "velocities": [4, 12] },
+    { "midi": 66, "name": "F#4", "velocities": [4, 12] },
+    { "midi": 69, "name": "A4", "velocities": [4, 12] },
+    { "midi": 72, "name": "C5", "velocities": [4, 12] },
+    { "midi": 75, "name": "D#5", "velocities": [4, 12] },
+    { "midi": 78, "name": "F#5", "velocities": [4, 12] },
+    { "midi": 81, "name": "A5", "velocities": [4, 12] },
+    { "midi": 84, "name": "C6", "velocities": [4, 12] }
+  ],
+  "integrity": {
+    "A4v12.opus": "51453bfb285cb1f0a785ab10a19473ecc7d1ecf54ca44e4fd3c4b96d6a9c8fbb",
+    "A4v4.opus": "8ce03d12665f91b0bd6ceba174ee8073dca26dd305ae0ff5f522365181909d6e",
+    "A5v12.opus": "60e5ace80f77c6b081cd1df41b6b4dd1193676728fc8e688591b506530c8c56a",
+    "A5v4.opus": "7cfec9da606b5af97dd00a072a938c04b809c672d37e3e58bd1c790430fd3c34",
+    "C4v12.opus": "9648ebf62fcedb25220d1c6229e3eca65a9f19c6ac83bd7e395f5a8eaaff884e",
+    "C4v4.opus": "4576a2b7d0542a9a048e79f06c6707038d750ffa7143d07aa2e89ec3bd653d23",
+    "C5v12.opus": "68790077d7b0b651f371bcc25fa9e3b4bf325511fef0e9575b97043870254a28",
+    "C5v4.opus": "8c0033515102dac9cc9f225ed4e3734600236f1bdfde6b163b854d6312f9029b",
+    "C6v12.opus": "abb58ff2457adc69fb8aeb7d26a9b7b86b5e3e383aa71935d25508ba346e3fd4",
+    "C6v4.opus": "07f88259d2009e3ed7618308d38205f9cbe20e2fdffaa6cd20c4fcc93ef1639a",
+    "D#4v12.opus": "a0309c9d9247115739388e84639514b42c178fd94695bcdb52bd75c9e9714d7b",
+    "D#4v4.opus": "afc2909066207a193d4021d1aec360439c03c18316b5e0738f70326d7c1e8a8a",
+    "D#5v12.opus": "ab6f6ba384a153e2b2b51e6166ce0dbc524637c64089395e833055d9a5c6a465",
+    "D#5v4.opus": "6bc0d65abb6071ea2882581ad4b7cb66111a3c1b7881ab2ca881f51e67c1c3fe",
+    "F#4v12.opus": "91c21bd2ea1c7011a596c91b55725a5aff25704a932c07737b25b614f20a3294",
+    "F#4v4.opus": "1083959969035f9d53ba2a325c582a5fef8625370761a37bc5d46381b9cfac50",
+    "F#5v12.opus": "b4d78d1f32ab2b7de3a556e942cd47c94129dbb694719b57596b118ffbaae439",
+    "F#5v4.opus": "692224f617f878ed583bcbb1ab8569ee67b2eaa5d482c72b979b5377609bb824"
+  }
+}

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Calendar, Map, Activity, BarChart2, Settings } from 'lucide-react';
+import { House, BookOpen, Activity, BarChart3, FolderOpen } from 'lucide-react';
 
 export type ActiveTab = 'home' | 'curriculum' | 'feeling' | 'progress' | 'settings';
 
@@ -12,11 +12,11 @@ interface NavigationProps {
 
 export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
   const navItems: { id: ActiveTab; label: string; icon: React.ReactNode }[] = [
-    { id: 'home', label: 'Today', icon: <Calendar size={18} /> },
-    { id: 'curriculum', label: 'Curriculum', icon: <Map size={18} /> },
-    { id: 'feeling', label: 'Feeling Lab', icon: <Activity size={18} /> },
-    { id: 'progress', label: 'Analytics', icon: <BarChart2 size={18} /> },
-    { id: 'settings', label: 'Settings', icon: <Settings size={18} /> },
+    { id: 'home', label: 'Today', icon: <House size={18} /> },
+    { id: 'curriculum', label: 'Learn', icon: <BookOpen size={18} /> },
+    { id: 'feeling', label: 'Train', icon: <Activity size={18} /> },
+    { id: 'progress', label: 'Progress', icon: <BarChart3 size={18} /> },
+    { id: 'settings', label: 'Library', icon: <FolderOpen size={18} /> },
   ];
 
   return (

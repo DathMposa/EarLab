@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Compass, Play, CheckCircle2, ArrowRight, X, Volume2 } from 'lucide-react';
-import { AppState, saveState } from '../../lib/storage/store';
+import { AppState, saveState, cloneState } from '../../lib/storage/store';
 import { TrackId, TRACKS } from '../../lib/music/curriculum';
 import { KEYS } from '../../lib/music/scales';
 import { audioEngine } from '../../lib/audio/audioEngine';
@@ -62,7 +62,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ state, onStateUp
   };
 
   const handleApplyPlacements = () => {
-    const next = structuredClone(state);
+    const next = cloneState(state);
     next.preferences.defaultKeyIndex = selectedKeyIndex;
     (['A', 'B', 'C', 'D'] as TrackId[]).forEach((id) => {
       next.tracks[id].level = recommendedLevels[id];

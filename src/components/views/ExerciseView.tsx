@@ -490,7 +490,7 @@ export const ExerciseView: React.FC<ExerciseViewProps> = ({
               style={{ padding: '8px 10px', fontSize: '0.88rem' }}
             >
               <option value="ep">Warm EP</option>
-              <option value="piano">Soft Piano</option>
+              <option value="piano">Studio Grand</option>
               <option value="pure">Reference Pure</option>
             </select>
           </div>

@@ -1,5 +1,6 @@
 import { TrackId, TRACKS } from '../music/curriculum';
 import { NotationMode, ScaleType, SoundTimbre } from '../music/scales';
+import { CompetencyEvidence, LearningEvent, ReviewItem, createBlankEvidence } from '../earlab2/types';
 
 export interface DegreeMastery {
   alpha: number;
@@ -56,12 +57,22 @@ export interface AppState {
   degreeMastery: Record<number, DegreeMastery>;
   confusionMatrix: Record<number, Record<number, number>>; // confusion[target][mistaken] = count
   history: SessionRecord[];
+  /** EarLab 2.0 local-first evidence. Existing A–D records remain untouched. */
+  competencyEvidence: Record<string, CompetencyEvidence>;
+  learningEvents: LearningEvent[];
+  reviewQueue: ReviewItem[];
 }
 
 const STORAGE_KEY = 'earlab_mastery_v3';
 
+/** Keeps installed WebViews compatible when native structuredClone is unavailable. */
+export function cloneState<T>(value: T): T {
+  if (typeof structuredClone === 'function') return structuredClone(value);
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
 export const DEFAULT_STATE: AppState = {
-  schemaVersion: 3,
+  schemaVersion: 5,
   sessionsCount: 0,
   challengesCount: 0,
   firstAttemptCorrectCount: 0,
@@ -72,7 +83,7 @@ export const DEFAULT_STATE: AppState = {
   lastActiveDay: new Date().toISOString().slice(0, 10),
   preferences: {
     notation: 'degrees',
-    defaultTimbre: 'ep',
+    defaultTimbre: 'piano',
     defaultKeyIndex: 0, // C
     defaultScale: 'major',
     enableMicAssessment: false,
@@ -98,6 +109,9 @@ export const DEFAULT_STATE: AppState = {
     1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}, 7: {},
   },
   history: [],
+  competencyEvidence: createBlankEvidence(),
+  learningEvents: [],
+  reviewQueue: [],
 };
 
 export function loadState(): AppState {
@@ -105,16 +119,25 @@ export function loadState(): AppState {
 
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return structuredClone(DEFAULT_STATE);
+    if (!raw) return cloneState(DEFAULT_STATE);
 
     const parsed = JSON.parse(raw);
-    const state: AppState = { ...structuredClone(DEFAULT_STATE), ...parsed };
+    const state: AppState = { ...cloneState(DEFAULT_STATE), ...parsed };
 
     // Deep-merge preferences and tracks to handle schema evolution
     state.preferences = { ...DEFAULT_STATE.preferences, ...(parsed.preferences || {}) };
     state.tracks = { ...DEFAULT_STATE.tracks, ...(parsed.tracks || {}) };
     state.degreeMastery = { ...DEFAULT_STATE.degreeMastery, ...(parsed.degreeMastery || {}) };
     state.confusionMatrix = { ...DEFAULT_STATE.confusionMatrix, ...(parsed.confusionMatrix || {}) };
+    state.competencyEvidence = { ...DEFAULT_STATE.competencyEvidence, ...(parsed.competencyEvidence || {}) };
+    state.learningEvents = Array.isArray(parsed.learningEvents) ? parsed.learningEvents : [];
+    state.reviewQueue = Array.isArray(parsed.reviewQueue) ? parsed.reviewQueue : [];
+
+    // v4 promotes the recorded Studio Grand to the default for existing learners.
+    if ((parsed.schemaVersion || 0) < 4 && state.preferences.defaultTimbre === 'ep') {
+      state.preferences.defaultTimbre = 'piano';
+    }
+    state.schemaVersion = DEFAULT_STATE.schemaVersion;
 
     // Normalize daily minutes
     const today = new Date().toISOString().slice(0, 10);
@@ -125,7 +148,7 @@ export function loadState(): AppState {
 
     return state;
   } catch {
-    return structuredClone(DEFAULT_STATE);
+    return cloneState(DEFAULT_STATE);
   }
 }
 

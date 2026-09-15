@@ -20,7 +20,7 @@
 * **ConfusionCrossTalk**: Auditory substitution vector graphics with instant A/B contrast comparisons.
 
 ### 🎛️ Audio Synthesis & Pitch Detection
-* Multi-timbre Web Audio engine: Warm Electric Piano (EP), Soft Grand Piano, and Pure Reference tones.
+* High-fidelity Studio Grand Piano samples with offline-after-first-download playback, plus warm EP fallback and calibrated pure reference tones.
 * Continuous tonic drone and harmonic cadence generator (I-IV-V-I scaffolding).
 * Live autocorrelation microphone pitch detector and cents intonation meter for singing tracks.
 
@@ -75,3 +75,9 @@ npm run start
 
 ## 📄 License
 MIT
+
+## 🎹 Audio attribution
+
+The bundled Studio Grand Piano is a reduced browser-ready subset of **Salamander Grand
+Piano v3** by Alexander Holm, licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).
+See [`public/audio/studio-grand/ATTRIBUTION.md`](public/audio/studio-grand/ATTRIBUTION.md).

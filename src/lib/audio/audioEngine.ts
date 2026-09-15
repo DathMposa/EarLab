@@ -1,4 +1,5 @@
-import { freqFromDegree, SoundTimbre, ScaleType } from '../music/scales';
+import { freqFromDegree, midiForDegree, SoundTimbre, ScaleType } from '../music/scales';
+import { StudioGrand, StudioGrandStatus } from './studioGrand';
 
 class AudioEngine {
   private ctx: AudioContext | null = null;
@@ -8,6 +9,7 @@ class AudioEngine {
   private droneOscs: OscillatorNode[] = [];
   private isDronePlaying = false;
   private scheduledSources: { stop: (when?: number) => void }[] = [];
+  private studioGrand = new StudioGrand();
 
   /**
    * Initializes or resumes the AudioContext on user interaction.
@@ -29,7 +31,12 @@ class AudioEngine {
       this.masterGain = this.ctx.createGain();
       this.masterGain.gain.setValueAtTime(0.75, this.ctx.currentTime);
 
-      this.masterGain.connect(this.compressor);
+      const masteringEQ = this.ctx.createBiquadFilter();
+      masteringEQ.type = 'lowshelf';
+      masteringEQ.frequency.setValueAtTime(180, this.ctx.currentTime);
+      masteringEQ.gain.setValueAtTime(1.25, this.ctx.currentTime);
+      this.masterGain.connect(masteringEQ);
+      masteringEQ.connect(this.compressor);
       this.compressor.connect(this.ctx.destination);
     }
 
@@ -52,6 +59,17 @@ class AudioEngine {
   ): Promise<void> {
     const ctx = await this.ensureContext();
     const now = startTime;
+
+    // Recorded Studio Grand is non-blocking: a cache miss starts loading and uses the
+    // existing synthesis voice until the closest sample has been decoded.
+    if (timbre === 'piano') {
+      const targetMidi = 69 + 12 * Math.log2(freq / 440);
+      const sample = this.studioGrand.take(ctx, Math.round(targetMidi), velocity);
+      if (sample) {
+        this.playSampleVoice(ctx, sample.buffer, sample.sourceMidi, targetMidi, now, duration, velocity);
+        return;
+      }
+    }
 
     // Amplitude Envelope
     const noteGain = ctx.createGain();
@@ -178,6 +196,34 @@ class AudioEngine {
     }
   }
 
+  private playSampleVoice(
+    ctx: AudioContext,
+    buffer: AudioBuffer,
+    sourceMidi: number,
+    targetMidi: number,
+    startTime: number,
+    duration: number,
+    velocity: number,
+  ): void {
+    const source = ctx.createBufferSource();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+    source.buffer = buffer;
+    source.playbackRate.setValueAtTime(Math.pow(2, (targetMidi - sourceMidi) / 12), startTime);
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(11800, startTime);
+    filter.Q.setValueAtTime(0.45, startTime);
+    gain.gain.setValueAtTime(0.0001, startTime);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, 0.42 * velocity), startTime + 0.008);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, 0.26 * velocity), startTime + Math.min(.22, duration * .35));
+    gain.gain.setValueAtTime(Math.max(0.0001, 0.26 * velocity), startTime + Math.max(.1, duration - .08));
+    gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration + .12);
+    source.connect(filter).connect(gain).connect(this.masterGain!);
+    source.start(startTime);
+    source.stop(startTime + Math.min(buffer.duration, duration + .16));
+    this.scheduledSources.push(source);
+  }
+
   /**
    * Plays a single scale degree note.
    */
@@ -193,6 +239,19 @@ class AudioEngine {
     const freq = freqFromDegree(degree, keyIndex, scale, octaveOffset);
     await this.playVoice(freq, ctx.currentTime + 0.02, duration, 1.0, timbre);
   }
+
+  public getStudioGrandStatus(): StudioGrandStatus { return this.studioGrand.getStatus(); }
+
+  public getStudioGrandLoadedCount(): number { return this.studioGrand.loadedCount(); }
+
+  public async prepareStudioGrand(keyIndex: number = 0): Promise<void> {
+    const ctx = await this.ensureContext();
+    await this.studioGrand.prepare(ctx, midiForDegree(1, keyIndex, 'major'));
+  }
+
+  public async clearStudioGrand(): Promise<void> { await this.studioGrand.clear(); }
+
+  public async getAudioStorageBytes(): Promise<number | null> { return this.studioGrand.storageBytes(); }
 
   /**
    * Schedules and plays a complete melodic phrase with sample-accurate Web Audio timing.
@@ -219,6 +278,40 @@ class AudioEngine {
     });
   }
 
+  /** Short click-free percussion voice for rhythm work; falls back to synthesis while packs load. */
+  public async playPercussion(kind: 'kick' | 'snare' | 'hat' = 'hat', when?: number): Promise<void> {
+    const ctx = await this.ensureContext();
+    const start = when ?? ctx.currentTime + .01;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = kind === 'kick' ? 'sine' : 'triangle';
+    osc.frequency.setValueAtTime(kind === 'kick' ? 120 : kind === 'snare' ? 210 : 1100, start);
+    if (kind === 'kick') osc.frequency.exponentialRampToValueAtTime(48, start + .08);
+    gain.gain.setValueAtTime(.0001, start);
+    gain.gain.exponentialRampToValueAtTime(kind === 'hat' ? .05 : .16, start + .002);
+    gain.gain.exponentialRampToValueAtTime(.0001, start + (kind === 'hat' ? .05 : .13));
+    osc.connect(gain).connect(this.masterGain!);
+    osc.start(start); osc.stop(start + .16); this.scheduledSources.push(osc);
+  }
+
+  public async playMetronome(beats: number = 4, bpm: number = 84): Promise<number> {
+    const ctx = await this.ensureContext();
+    this.stopMelody();
+    const start = ctx.currentTime + .12;
+    const beat = 60 / bpm;
+    for (let i = 0; i < beats; i++) this.playPercussion(i === 0 ? 'kick' : 'hat', start + i * beat);
+    return performance.now() + (start - ctx.currentTime) * 1000;
+  }
+
+  public async playChord(degrees: number[], keyIndex = 0, scale: ScaleType = 'major', timbre: SoundTimbre = 'piano', duration = 1.3): Promise<void> {
+    const ctx = await this.ensureContext();
+    const start = ctx.currentTime + .04;
+    degrees.forEach((degree, index) => {
+      const freq = freqFromDegree(degree, keyIndex, scale, index === 0 ? -1 : 0);
+      this.playVoice(freq, start, duration, index === 0 ? .92 : .78, timbre);
+    });
+  }
+
   /**
    * Plays a cadence or tonal frame to anchor the listener's ear to tonic.
    * Plays: 1 (low) -> 3 -> 5 -> 1 (octave).
@@ -226,7 +319,7 @@ class AudioEngine {
   public async playTonalFrame(
     keyIndex: number = 0,
     scale: ScaleType = 'major',
-    timbre: SoundTimbre = 'pure'
+    timbre: SoundTimbre = 'piano'
   ): Promise<void> {
     const ctx = await this.ensureContext();
     this.stopMelody();

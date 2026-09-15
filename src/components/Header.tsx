@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { SlidersHorizontal } from 'lucide-react';
+import { Settings2 } from 'lucide-react';
 import { Logo } from './Logo';
 import { AppState } from '../lib/storage/store';
 import { KEYS } from '../lib/music/scales';
@@ -16,10 +16,8 @@ export const Header: React.FC<HeaderProps> = ({ state, onOpenSettings }) => {
   const scale = state.preferences.defaultScale === 'major' ? 'Maj' : 'Min';
 
   return (
-    <header className="workspace-header">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-        <Logo size={32} showText={true} />
-      </div>
+    <header className="workspace-header" aria-label="EarLab header">
+      <Logo size={38} showText={true} />
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <div style={{
@@ -36,7 +34,7 @@ export const Header: React.FC<HeaderProps> = ({ state, onOpenSettings }) => {
           fontFamily: 'var(--font-mono)',
           boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
         }}>
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#09090b' }} />
+          <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--good)' }} />
           <span>{currentKey} {scale}</span>
         </div>
 
@@ -51,7 +49,7 @@ export const Header: React.FC<HeaderProps> = ({ state, onOpenSettings }) => {
           fontFamily: 'var(--font-mono)',
           boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
         }}>
-          {state.sessionsCount} sess
+          {state.sessionsCount} sessions
         </div>
 
         <button
@@ -60,7 +58,7 @@ export const Header: React.FC<HeaderProps> = ({ state, onOpenSettings }) => {
           style={{ padding: '8px 10px', minHeight: 'unset', borderRadius: '8px' }}
           title="Preferences & Audio Setup"
         >
-          <SlidersHorizontal size={18} />
+          <Settings2 size={18} />
         </button>
       </div>
     </header>

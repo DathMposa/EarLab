@@ -1,332 +1,82 @@
 'use client';
 
 import React from 'react';
-import { Play, Compass, ArrowRight, Award, Zap, Mic, Headphones, Music2, PencilLine } from 'lucide-react';
+import { Play, Compass, ArrowRight, Mic, Headphones, Music2, PencilLine, Clock3, Target, Eye, BarChart3 } from 'lucide-react';
 import { AppState } from '../../lib/storage/store';
 import { TRACKS, TrackId } from '../../lib/music/curriculum';
 import { getRecommendedTrack, getDegreeMasteryPct } from '../../lib/engine/adaptiveEngine';
-import { FlowGlyph } from '../visuals/FlowGlyph';
-import { TonalConstellation } from '../visuals/TonalConstellation';
-import { DailySequencer } from '../visuals/DailySequencer';
+import { competencyScore, createGuidedSession, getDueReviews } from '../../lib/earlab2/learningEngine';
+import { MODULES } from '../../lib/earlab2/types';
 
-interface HomeViewProps {
-  state: AppState;
-  onStartSession: (trackId: TrackId, levelIndex?: number) => void;
-  onOpenDiagnostic: () => void;
-}
+interface HomeViewProps { state: AppState; onStartSession: (trackId: TrackId, levelIndex?: number) => void; onOpenDiagnostic: () => void; }
+
+const trackIcon = (id: TrackId) => ({ A: <Mic size={21} />, B: <Headphones size={21} />, C: <Music2 size={21} />, D: <PencilLine size={21} /> }[id]);
+const trackVerb: Record<TrackId, string> = { A: 'Vocalize', B: 'Identify', C: 'Audiate', D: 'Reconstruct' };
+const trackHint: Record<TrackId, string> = { A: 'Sing & verify', B: 'Perceptual decode', C: 'Mental hearing', D: 'Melodic dictation' };
 
 export const HomeView: React.FC<HomeViewProps> = ({ state, onStartSession, onOpenDiagnostic }) => {
   const recommendedTrackId = getRecommendedTrack(state);
-  const recTrack = TRACKS[recommendedTrackId];
-  const recLevelIndex = state.tracks[recommendedTrackId].level;
-  const recLevel = recTrack.levels[recLevelIndex];
+  const track = TRACKS[recommendedTrackId];
+  const levelIndex = state.tracks[recommendedTrackId].level;
+  const level = track.levels[levelIndex];
+  const firstAttempt = state.challengesCount ? Math.round(state.firstAttemptCorrectCount / state.challengesCount * 100) : 0;
+  const reveal = state.challengesCount ? Math.round(state.revealsCount / state.challengesCount * 100) : 0;
+  const retention = Math.round([1,2,3,4,5,6,7].reduce((sum, degree) => sum + getDegreeMasteryPct(state, degree), 0) / 7);
+  const minutes = Math.round(state.todayMinutes);
+  const dailyPct = Math.min(100, Math.round(minutes / 40 * 100));
+  const dueReviews = getDueReviews(state);
+  const profile = MODULES.slice(0, 4).map((module) => ({ ...module, score: competencyScore(state, module.competency) }));
+  const plan = createGuidedSession(state, 60);
 
-  // Calculate genuine learning metrics
-  const firstAttemptPct = state.challengesCount > 0
-    ? Math.round((state.firstAttemptCorrectCount / state.challengesCount) * 100)
-    : 0;
+  return <div className="earlab-page">
+    <section style={{ display: 'flex', alignItems: 'end', justifyContent: 'space-between', gap: 16 }}>
+      <div><h1 className="earlab-title">Good morning</h1><p className="earlab-subtitle">Small steps. A more musical you.</p></div>
+      <div className="daily-ring" style={{ '--value': dailyPct } as React.CSSProperties} aria-label={`${minutes} of 40 minutes practiced`}><strong>{minutes}<small style={{ fontSize: '.62rem', color: 'var(--text-muted)' }}>/40</small></strong></div>
+    </section>
 
-  const revealPct = state.challengesCount > 0
-    ? Math.round((state.revealsCount / state.challengesCount) * 100)
-    : 0;
-
-  const degreePcts = [1, 2, 3, 4, 5, 6, 7].map((d) => getDegreeMasteryPct(state, d));
-  const avgTonalMastery = Math.round(degreePcts.reduce((a, b) => a + b, 0) / 7);
-
-  const getTrackIcon = (id: TrackId) => {
-    switch (id) {
-      case 'A': return <Mic size={16} color="#09090b" />;
-      case 'B': return <Headphones size={16} color="#09090b" />;
-      case 'C': return <Music2 size={16} color="#09090b" />;
-      case 'D': return <PencilLine size={16} color="#09090b" />;
-    }
-  };
-
-  return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '14px',
-      maxWidth: '1240px',
-      width: '100%',
-      margin: '0 auto',
-    }}>
-      {/* Top Studio Grid: Next Practice Hero (Left) + Daily Sequencer & Telemetry (Right) */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
-        gap: '14px',
-        alignItems: 'stretch',
-      }}>
-        {/* Next Practice Block */}
-        <section className="studio-card" style={{
-          background: 'linear-gradient(145deg, #ffffff 0%, #f7f7f9 100%)',
-          border: '1.5px solid var(--panel-border-bright)',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-        }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <div className="section-tag">
-                <Zap size={13} color="#09090b" />
-                Next Due Practice
-              </div>
-              <span style={{
-                background: '#09090b',
-                color: '#ffffff',
-                padding: '2px 8px',
-                borderRadius: '5px',
-                fontSize: '0.78rem',
-                fontWeight: 800,
-                fontFamily: 'var(--font-mono)',
-              }}>
-                {recommendedTrackId}{recLevelIndex + 1} · {recLevel.name}
-              </span>
-            </div>
-
-            <h2 style={{ fontSize: '1.35rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#09090b', marginBottom: '8px' }}>
-              {recTrack.name}
-            </h2>
-
-            {/* Cognitive Pipeline & Tonal Constellation Strip */}
-            <div style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '8px',
-              alignItems: 'center',
-              marginBottom: '14px',
-            }}>
-              <FlowGlyph trackId={recommendedTrackId} />
-              <div style={{
-                background: 'rgba(0, 0, 0, 0.03)',
-                border: '1px solid var(--panel-border-medium)',
-                borderRadius: '7px',
-                padding: '4px 8px',
-              }}>
-                <TonalConstellation
-                  allowedDegrees={recLevel.allowedDegrees}
-                  phraseLength={recLevel.phraseLength}
-                  size="sm"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <button
-              className="btn-primary"
-              onClick={() => onStartSession(recommendedTrackId, recLevelIndex)}
-              style={{ padding: '8px 18px', fontSize: '0.9rem' }}
-            >
-              <Play size={15} fill="currentColor" />
-              Start Session · 10 min
-            </button>
-
-            <button
-              className="btn-secondary"
-              onClick={onOpenDiagnostic}
-              style={{ padding: '8px 14px', fontSize: '0.86rem' }}
-            >
-              <Compass size={15} />
-              Placement Check
-            </button>
-          </div>
-        </section>
-
-        {/* Right Stack: Daily Practice Sequencer + Compact Telemetry */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {/* Daily Sequencer */}
-          <section className="studio-card studio-card-compact">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-              <div className="section-tag">
-                Daily Practice Sequence
-              </div>
-              <span style={{ fontSize: '0.72rem', fontFamily: 'var(--font-mono)', color: 'var(--text-dim)', fontWeight: 700 }}>
-                4 &times; 10 MIN
-              </span>
-            </div>
-
-            <DailySequencer
-              onStartSession={(id) => onStartSession(id)}
-              activeTrackId={recommendedTrackId}
-            />
-          </section>
-
-          {/* Cognitive Learning Telemetry */}
-          <section className="studio-card studio-card-compact">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-              <div className="section-tag">
-                Cognitive Telemetry
-              </div>
-              <span style={{ fontSize: '0.72rem', fontFamily: 'var(--font-mono)', color: 'var(--text-dim)' }}>
-                {state.sessionsCount} SESSIONS
-              </span>
-            </div>
-
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(4, 1fr)',
-              gap: '8px',
-            }}>
-              <div style={{ background: 'var(--panel-card-subtle)', border: '1px solid var(--panel-border-medium)', borderRadius: '8px', padding: '8px 6px', textAlign: 'center' }}>
-                <b style={{ display: 'block', fontSize: '1.25rem', fontWeight: 800, color: '#09090b', fontFamily: 'var(--font-mono)' }}>
-                  {firstAttemptPct}%
-                </b>
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>1st Attempt</span>
-              </div>
-
-              <div style={{ background: 'var(--panel-card-subtle)', border: '1px solid var(--panel-border-medium)', borderRadius: '8px', padding: '8px 6px', textAlign: 'center' }}>
-                <b style={{ display: 'block', fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
-                  {revealPct}%
-                </b>
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>Reveal</span>
-              </div>
-
-              <div style={{ background: 'var(--panel-card-subtle)', border: '1px solid var(--panel-border-medium)', borderRadius: '8px', padding: '8px 6px', textAlign: 'center' }}>
-                <b style={{ display: 'block', fontSize: '1.25rem', fontWeight: 800, color: '#09090b', fontFamily: 'var(--font-mono)' }}>
-                  {avgTonalMastery}%
-                </b>
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>Retention</span>
-              </div>
-
-              <div style={{ background: 'var(--panel-card-subtle)', border: '1px solid var(--panel-border-medium)', borderRadius: '8px', padding: '8px 6px', textAlign: 'center' }}>
-                <b style={{ display: 'block', fontSize: '1.25rem', fontWeight: 800, color: '#09090b', fontFamily: 'var(--font-mono)' }}>
-                  {Math.round(state.todayMinutes)}m
-                </b>
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>Today</span>
-              </div>
-            </div>
-          </section>
-        </div>
+    <section className="studio-card soft-wave" style={{ minHeight: 250, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+        <div className="section-tag"><Target size={15} color="var(--good)" /> Next practice</div>
+        <span style={{ background: '#eef1fb', borderRadius: 12, padding: '5px 10px', font: '500 .78rem var(--font-mono)' }}>{recommendedTrackId}{levelIndex + 1} · Level</span>
       </div>
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 9, color: 'var(--good)', fontWeight: 800, marginBottom: 8 }}>{trackIcon(recommendedTrackId)} {track.name}</div>
+        <h2 style={{ fontSize: 'clamp(1.75rem, 7vw, 2.6rem)', letterSpacing: '-.05em', lineHeight: 1.05 }}>{level.name}</h2>
+        <p style={{ color: 'var(--text-muted)', marginTop: 8, fontSize: '1.05rem' }}>{trackVerb[recommendedTrackId]} your way through today’s focused practice.</p>
+      </div>
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <button className="btn-primary" onClick={() => onStartSession(recommendedTrackId, levelIndex)}><Play size={17} fill="currentColor" /> Continue · 10 min</button>
+        <button className="btn-secondary" onClick={onOpenDiagnostic}><Compass size={17} /> Placement check</button>
+      </div>
+    </section>
 
-      {/* Bottom Section: Four Core Tracks Grid */}
-      <section className="studio-card">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-          <div className="section-tag">
-            <Award size={14} />
-            Four Core Independent Tracks
-          </div>
-          <span style={{ fontSize: '0.72rem', fontFamily: 'var(--font-mono)', color: 'var(--text-dim)', fontWeight: 700 }}>
-            VOCAL &bull; AUDITORY &bull; AUDIATION &bull; TRANSCRIPTION
-          </span>
-        </div>
+    <section className="studio-card">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 13 }}><div className="section-tag">Today plan</div><span style={{ color: 'var(--text-dim)', font: '.76rem var(--font-mono)' }}>4 × 10 MIN</span></div>
+      <div style={{ display: 'grid', gap: 9 }}>
+        {(['A','B','C','D'] as TrackId[]).map((id, i) => { const active = id === recommendedTrackId; return <button key={id} onClick={() => onStartSession(id)} style={{ minHeight: 68, justifyContent: 'flex-start', textAlign: 'left', background: active ? 'linear-gradient(90deg,#eef3ff,#fff)' : '#fff', borderColor: active ? 'rgba(91,126,220,.32)' : 'var(--panel-border)' }}>
+          <span style={{ width: 36, height: 36, borderRadius: 11, display: 'grid', placeItems: 'center', color: active ? '#fff' : 'var(--text-secondary)', background: active ? '#2b3b69' : '#f0f3f9', flex: '0 0 auto', fontWeight: 800 }}>{String.fromCharCode(65 + i)}</span>
+          <span style={{ flex: 1 }}><strong style={{ display: 'block' }}>{trackVerb[id]}</strong><span style={{ color: 'var(--text-muted)', fontSize: '.84rem', fontWeight: 500 }}>{trackHint[id]}</span></span>
+          <span style={{ color: 'var(--text-dim)', fontSize: '.8rem', display: 'inline-flex', gap: 4, alignItems: 'center' }}><Clock3 size={15} />10 min</span>
+        </button>; })}
+      </div>
+    </section>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: '10px',
-        }}>
-          {(['A', 'B', 'C', 'D'] as TrackId[]).map((trackId) => {
-            const track = TRACKS[trackId];
-            const currentLevel = state.tracks[trackId].level;
-            const qualifying = state.tracks[trackId].qualifying;
-            const activeLevelDef = track.levels[currentLevel];
+    <section className="studio-card guided-session-card">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}><div><div className="section-tag">360° daily training</div><h2 style={{ marginTop: 6 }}>A balanced 60-minute route</h2></div><span className="review-count">{dueReviews.length} due reviews</span></div>
+      <p className="earlab-subtitle" style={{ fontSize: '.92rem', marginTop: 6 }}>Weak areas receive extra time while every skill stays in rotation.</p>
+      <div className="guided-blocks">{plan.blocks.map((block) => <div key={block.module}><strong>{MODULES.find((module) => module.id === block.module)?.title}</strong><span>{block.minutes} min · {block.reason}</span></div>)}</div>
+    </section>
 
-            return (
-              <div
-                key={trackId}
-                style={{
-                  background: 'var(--panel-card-subtle)',
-                  border: '1px solid var(--panel-border-medium)',
-                  borderRadius: '10px',
-                  padding: '12px 14px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  gap: '10px',
-                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.02)',
-                  minWidth: 0,
-                  overflow: 'hidden',
-                }}
-              >
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-                      <div style={{
-                        width: '26px',
-                        height: '26px',
-                        borderRadius: '6px',
-                        background: '#ffffff',
-                        border: '1px solid var(--panel-border-medium)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}>
-                        {getTrackIcon(trackId)}
-                      </div>
-                      <b style={{ fontSize: '0.9rem', color: '#09090b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {track.name}
-                      </b>
-                    </div>
+    <section className="studio-card ear-profile-card">
+      <div className="section-tag">Ear Profile</div><h2 style={{ marginTop: 7 }}>Evidence, not one universal score</h2>
+      <div className="profile-grid">{profile.map((item) => <div key={item.id}><span>{item.title}</span><strong>{item.score === null ? 'Building baseline' : `${item.score}%`}</strong></div>)}</div>
+    </section>
 
-                    <span style={{
-                      fontWeight: 800,
-                      fontSize: '0.76rem',
-                      fontFamily: 'var(--font-mono)',
-                      background: '#09090b',
-                      padding: '2px 6px',
-                      borderRadius: '4px',
-                      color: '#ffffff',
-                      flexShrink: 0,
-                    }}>
-                      {trackId}{currentLevel + 1}
-                    </span>
-                  </div>
-
-                  {/* Self-descriptive Flow Glyph - 100% responsive and overflow-proof */}
-                  <div style={{ margin: '6px 0', width: '100%' }}>
-                    <FlowGlyph trackId={trackId} compact />
-                  </div>
-
-                  <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    Level {currentLevel + 1}: {activeLevelDef.name}
-                  </div>
-                </div>
-
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--text-dim)', marginBottom: '4px', fontFamily: 'var(--font-mono)' }}>
-                    <span>Mastery</span>
-                    <b style={{ color: qualifying >= 3 ? 'var(--good)' : 'var(--text)' }}>{qualifying}/3 sessions</b>
-                  </div>
-
-                  <div style={{
-                    height: '4px',
-                    borderRadius: '99px',
-                    background: 'rgba(0, 0, 0, 0.08)',
-                    overflow: 'hidden',
-                  }}>
-                    <div style={{
-                      height: '100%',
-                      width: `${(qualifying / 3) * 100}%`,
-                      background: qualifying >= 3 ? 'var(--good)' : '#09090b',
-                      borderRadius: '99px',
-                    }} />
-                  </div>
-
-                  <button
-                    onClick={() => onStartSession(trackId, currentLevel)}
-                    className="btn-secondary"
-                    style={{
-                      width: '100%',
-                      marginTop: '8px',
-                      padding: '6px 10px',
-                      fontSize: '0.82rem',
-                      fontWeight: 650,
-                      minHeight: '32px',
-                    }}
-                  >
-                    Practice {trackId}{currentLevel + 1}
-                    <ArrowRight size={13} />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-    </div>
-  );
+    <section className="studio-card">
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 13 }}><div className="section-tag">Today insights</div><span style={{ color: 'var(--text-dim)', font: '.76rem var(--font-mono)' }}>{state.sessionsCount} SESSIONS</span></div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0,1fr))', gap: 8 }}>
+        {[['First attempt', `${firstAttempt}%`, <Target key="t" />], ['Reveal', `${reveal}%`, <Eye key="e" />], ['Retention', `${retention}%`, <BarChart3 key="b" />], ['Today', `${minutes}m`, <Clock3 key="c" />]].map(([label, value, icon]) => <div key={label as string} style={{ border: '1px solid var(--panel-border)', borderRadius: 15, padding: '12px 8px', background: 'var(--panel-card-subtle)' }}><span style={{ color: 'var(--good)' }}>{icon as React.ReactNode}</span><strong style={{ display: 'block', fontSize: '1.4rem', marginTop: 8 }}>{value as string}</strong><span style={{ color: 'var(--text-muted)', fontSize: '.7rem' }}>{label as string}</span></div>)}
+      </div>
+    </section>
+  </div>;
 };

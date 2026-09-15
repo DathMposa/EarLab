@@ -54,9 +54,18 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+                var refreshingForServiceWorker = false;
+                navigator.serviceWorker.addEventListener('controllerchange', function() {
+                  if (refreshingForServiceWorker || sessionStorage.getItem('earlab-sw-refresh')) return;
+                  refreshingForServiceWorker = true;
+                  sessionStorage.setItem('earlab-sw-refresh', '1');
+                  window.location.reload();
+                });
                 window.addEventListener('load', function() {
                   navigator.serviceWorker.register('/sw.js', { scope: '/' })
                     .then(function(registration) {
+                      registration.update();
+                      sessionStorage.removeItem('earlab-sw-refresh');
                       console.log('EarLab PWA ServiceWorker active with scope:', registration.scope);
                     })
                     .catch(function(err) {

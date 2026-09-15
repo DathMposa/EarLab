@@ -1,5 +1,5 @@
 import { TrackId, TRACKS, LevelDefinition } from '../music/curriculum';
-import { AppState, saveState, SessionRecord } from '../storage/store';
+import { AppState, saveState, SessionRecord, cloneState } from '../storage/store';
 
 export interface EvaluationResult {
   isCorrect: boolean;
@@ -51,7 +51,7 @@ export function recordChallengeAttempt(
   wasRevealed: boolean,
   confusionPairs: { target: number; chosen: number }[]
 ): AppState {
-  const next = structuredClone(state);
+  const next = cloneState(state);
   next.challengesCount++;
 
   if (isFirstAttemptCorrect) {
@@ -169,7 +169,7 @@ export function completeSession(
   retries: number,
   durationSeconds: number
 ): { nextState: AppState; outcome: SessionCompletionOutcome } {
-  const next = structuredClone(state);
+  const next = cloneState(state);
   const trackDef = TRACKS[trackId];
   const levelDef = trackDef.levels[levelIndex];
 
